@@ -1,3 +1,63 @@
+(server-start)
+
+;; Add repository
+(when (>= emacs-major-version 24)
+  (require 'package)
+  (add-to-list
+   'package-archives
+   '("melpa" . "http://melpa.org/packages/")
+   t)
+  (package-initialize))
+
+(defun ensure-package-installed (&rest packages)
+  "Assure every package is installed, ask for installation if it's not.
+   
+   Return a list of installed packages or nil for every skipped package."
+  (mapcar
+   (lambda (package)
+     ;; (package-installed-p 'evil)
+     (if (package-installed-p package)
+         nil
+       (if (y-or-n-p (format "Package %s is missing. Install it? " package))
+           (package-install package)
+         package)))
+   packages))
+
+;; make sure to have downloaded archive description.
+;; Or use package-archive-contents as suggested by Nicolas Dudebout
+(or (file-exists-p package-user-dir)
+    (package-refresh-contents))
+
+(ensure-package-installed 'monokai-theme
+                          'magit
+                          'js2-mode
+                          'web-beautify
+                          'auto-complete
+                          'anzu
+                          'omnisharp
+                          'py-autopep8
+                          'flycheck
+                          'smex
+                          'elpy
+                          'swift-mode
+                          'neotree
+                          'swiper
+			  'counsel)
+
+;; activate installed packages
+(package-initialize)
+
+;; Load theme
+(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
+(load-theme 'zenburn t)
+
+;; Load custom lisp scripts
+(let ((default-directory "~/.emacs.d/lisp/"))
+  (normal-top-level-add-to-load-path '("."))
+  (normal-top-level-add-subdirs-to-load-path))
+
+;; Disable bars
+(tool-bar-mode -1)
 (menu-bar-mode -1)
 (scroll-bar-mode -1)
 
@@ -31,6 +91,18 @@
 (global-set-key "\M-n"  (lambda () (interactive) (scroll-up   4)) )
 (global-set-key "\M-p"  (lambda () (interactive) (scroll-down 4)) )
 
+;; multiple cursors
+(require 'multiple-cursors)
+(global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
+(global-set-key (kbd "C->") 'mc/mark-next-like-this)
+(global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
+(global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
+
+;; column marker
+(require 'fill-column-indicator)
+(setq fci-rule-column 79)
+(add-hook 'python-mode-hook '(lambda () (fci-mode t)))
+
 ;; Shell settings
 (require 'powershell-mode)
 (add-to-list 'auto-mode-alist '("\\.ps1\\'" . powershell-mode))
@@ -47,11 +119,6 @@
 ;; Auto complete
 (require 'auto-complete-config)
 (ac-config-default)
-
-;; Use ido mode
-(ido-mode 1)
-(setq ido-enable-flex-matching t)
-(setq ido-everywhere t)
 
 ;; Magit rules!
 (global-set-key (kbd "C-x g") 'magit-status)
@@ -79,48 +146,17 @@
 
 ;; Python settings
 (setq python-shell-interpreter "ipython")
+(setenv "PYTHONPATH" "D:\\Python Projects\\")
 
-;; Configure flymake for Python
-(when (load "flymake" t)
-  (defun flymake-pylint-init ()
-    (let* ((temp-file (flymake-init-create-temp-buffer-copy
-                       'flymake-create-temp-inplace))
-           (local-file (file-relative-name
-                        temp-file
-                        (file-name-directory buffer-file-name))))
-      (list "epylint" (list local-file))))
-  (add-to-list 'flymake-allowed-file-name-masks
-               '("\\.py\\'" flymake-pylint-init)))
-
-;; Set as a minor mode for Python
-(add-hook 'python-mode-hook '(lambda () (flymake-mode)))
-
-;; Configure to wait a bit longer after edits before starting
-(setq-default flymake-no-changes-timeout '3)
-
-;; Keymaps to navigate to the errors
-(add-hook 'python-mode-hook '(lambda () (define-key python-mode-map "\C-cn" 'flymake-goto-next-error)))
-(add-hook 'python-mode-hook '(lambda () (define-key python-mode-map "\C-cp" 'flymake-goto-prev-error)))
-
-;; To avoid having to mouse hover for the error message, these functions make flymake error messages
-;; appear in the minibuffer
-(defun show-fly-err-at-point ()
-  "If the cursor is sitting on a flymake error, display the message in the minibuffer"
-  (require 'cl)
-  (interactive)
-  (let ((line-no (line-number-at-pos)))
-    (dolist (elem flymake-err-info)
-      (if (eq (car elem) line-no)
-      (let ((err (car (second elem))))
-        (message "%s" (flymake-ler-text err)))))))
-
-(add-hook 'post-command-hook 'show-fly-err-at-point)
-
+;; elpy python development tool
+(elpy-enable)
+(setq py-autopep8-options '("--max-line-length=120"))
 ;; Need to install external autopep8 tool
 (require 'py-autopep8)
 
-(elpy-enable)
-(setq py-autopep8-options '("--max-line-length=120"))
+(when (require 'flycheck nil t)
+  (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
+  (add-hook 'elpy-mode-hook 'flycheck-mode))
 
 (add-hook 'python-mode-hook
           (lambda ()
@@ -201,26 +237,21 @@
   c-basic-offset 4)
 
 ;; ERC settings (IRC)
-(require 'erc)
-(erc-autojoin-mode t)
-(erc-track-mode 1)
-(setq erc-autojoin-channels-alist
-      '((".*\\.freenode.net" "#emacs" "#python" "##networking")))
-(setq erc-nick "aijihz") 
-(setq erc-track-exclude-types '("JOIN" "NICK" "PART" "QUIT" "MODE"
-                                 "324" "329" "332" "333" "353" "477"))
-(setq erc-hide-list '("JOIN" "PART" "QUIT" "NICK"))
+;; (require 'erc)
+;; (erc-autojoin-mode t)
+;; (erc-track-mode 1)
+;; (setq erc-autojoin-channels-alist
+;;       '((".*\\.freenode.net" "#emacs" "#python" "##networking")))
+;; (setq erc-nick "aijihz") 
+;; (setq erc-track-exclude-types '("JOIN" "NICK" "PART" "QUIT" "MODE"
+;;                                  "324" "329" "332" "333" "353" "477"))
+;; (setq erc-hide-list '("JOIN" "PART" "QUIT" "NICK"))
 
 ;; Org mode
 (global-set-key "\C-cl" 'org-store-link)
 (global-set-key "\C-ca" 'org-agenda)
 (global-set-key "\C-cc" 'org-capture)
 (global-set-key "\C-cb" 'org-iswitchb)
-
-;; Lua mode
-(autoload 'lua-mode "lua-mode" "Lua editing mode." t)
-(add-to-list 'auto-mode-alist '("\\.lua$" . lua-mode))
-(add-to-list 'interpreter-mode-alist '("lua" . lua-mode))
 
 ;; Html settings
 (add-hook 'html-mode-hook
@@ -251,26 +282,43 @@
 ;; Web browsing
 (global-set-key (kbd "C-x C-o") 'browse-url-at-point)
 
-
 ;; Kill all other buffers
 (defun kill-other-buffers ()
   "Kill all other buffers."
   (interactive)
   (mapc 'kill-buffer
         (delq (current-buffer)
-              (remove-if-not '(lambda (x) (or (buffer-file-name x) (eq 'dired-mode (buffer-local-value 'major-mode x)))) (buffer-list)))))
+              (remove-if-not '(lambda (x)
+                                (or (buffer-file-name x)
+                                    (eq 'dired-mode
+                                        (buffer-local-value 'major-mode x)))) (buffer-list)))))
 
 ;; neotree
-(add-to-list 'load-path "/some/path/neotree")
 (require 'neotree)
 (global-set-key [f8] 'neotree-toggle)
 (setq neo-smart-open t)
 
-;;android MODE
+;;android mode
 ;; Omit the next line if installed through ELPA
 (require 'android-mode)
-(custom-set-variables '(android-mode-sdk-dir "~/opt/android"))
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(android-mode-sdk-dir "~/opt/android")
+ '(elpy-modules
+   (quote
+    (elpy-module-company elpy-module-eldoc elpy-module-pyvenv elpy-module-yasnippet elpy-module-sane-defaults)))
+ '(safe-local-variable-values
+   (quote
+    ((eval when
+           (require
+            (quote rainbow-mode)
+            nil t)
+           (rainbow-mode 1))))))
 
+;; ivy-mode
 (add-to-list 'load-path "~/git/swiper/")
 (require 'ivy)
 (ivy-mode 1)
@@ -285,3 +333,14 @@
 (global-set-key (kbd "<f1> l") 'counsel-load-library)
 (global-set-key (kbd "<f2> i") 'counsel-info-lookup-symbol)
 (global-set-key (kbd "<f2> u") 'counsel-unicode-char)
+
+
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
+
+;; init.el ends here
+
