@@ -1,7 +1,7 @@
 (server-start)
 
 ;; Add repository
-(when (>= emacs-major-version 24)
+(when (>= emacs-major-version 25)
   (require 'package)
   (add-to-list
    'package-archives
@@ -28,10 +28,10 @@
 (or (file-exists-p package-user-dir)
     (package-refresh-contents))
 
-(ensure-package-installed 'monokai-theme
-                          'magit
+(ensure-package-installed 'magit
                           'js2-mode
                           'web-beautify
+                          'projectile
                           'auto-complete
                           'anzu
                           'omnisharp
@@ -39,17 +39,19 @@
                           'flycheck
                           'smex
                           'elpy
+                          'ivy
                           'swift-mode
                           'neotree
                           'swiper
-			  'counsel)
+                          'counsel
+                          'multiple-cursors)
 
 ;; activate installed packages
 (package-initialize)
 
 ;; Load theme
-(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
-(load-theme 'zenburn t)
+(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/moe-theme")
+(load-theme 'moe-dark t)
 
 ;; Load custom lisp scripts
 (let ((default-directory "~/.emacs.d/lisp/"))
@@ -133,6 +135,9 @@
 ;; Mouse
 (mouse-avoidance-mode 'animate)
 
+;; highlight indentation off
+(add-hook 'python-mode-hook '(lambda () (setq highlight-indentation-mode -1)))
+
 ;; Flycheck
 (require 'flycheck)
 (global-flycheck-mode)
@@ -146,10 +151,11 @@
 
 ;; Python settings
 (setq python-shell-interpreter "ipython")
-(setenv "PYTHONPATH" "D:\\Python Projects\\")
+(setenv "PYTHONPATH" "D:\\Projects\\Python\\")
 
 ;; elpy python development tool
 (elpy-enable)
+(setq python-check-command "flake8")
 (setq py-autopep8-options '("--max-line-length=120"))
 ;; Need to install external autopep8 tool
 (require 'py-autopep8)
@@ -298,26 +304,6 @@
 (global-set-key [f8] 'neotree-toggle)
 (setq neo-smart-open t)
 
-;;android mode
-;; Omit the next line if installed through ELPA
-(require 'android-mode)
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(android-mode-sdk-dir "~/opt/android")
- '(elpy-modules
-   (quote
-    (elpy-module-company elpy-module-eldoc elpy-module-pyvenv elpy-module-yasnippet elpy-module-sane-defaults)))
- '(safe-local-variable-values
-   (quote
-    ((eval when
-           (require
-            (quote rainbow-mode)
-            nil t)
-           (rainbow-mode 1))))))
-
 ;; ivy-mode
 (add-to-list 'load-path "~/git/swiper/")
 (require 'ivy)
@@ -334,7 +320,6 @@
 (global-set-key (kbd "<f2> i") 'counsel-info-lookup-symbol)
 (global-set-key (kbd "<f2> u") 'counsel-unicode-char)
 
-
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -344,3 +329,11 @@
 
 ;; init.el ends here
 
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(elpy-modules
+   (quote
+    (elpy-module-company elpy-module-eldoc elpy-module-pyvenv elpy-module-yasnippet elpy-module-sane-defaults))))
