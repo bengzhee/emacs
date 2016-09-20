@@ -44,7 +44,8 @@
                           'neotree
                           'swiper
                           'counsel
-                          'multiple-cursors)
+                          'multiple-cursors
+			  'fill-column-indicator)
 
 ;; activate installed packages
 (package-initialize)
@@ -104,10 +105,6 @@
 (require 'fill-column-indicator)
 (setq fci-rule-column 79)
 (add-hook 'python-mode-hook '(lambda () (fci-mode t)))
-
-;; Shell settings
-(require 'powershell-mode)
-(add-to-list 'auto-mode-alist '("\\.ps1\\'" . powershell-mode))
 
 ;; Dire settings
 (setq dired-dwim-target t)
@@ -199,9 +196,6 @@
 (global-set-key (kbd "C-c e")                       ;; .emacs
                 (lambda()(interactive)(find-file "~/.emacs.d/init.el")))
 
-;; Perforce settings
-(require 'p4)
-
 ;; Revert buffer
 (global-auto-revert-mode 1)
 
@@ -269,7 +263,6 @@
 (global-anzu-mode +1)
 (global-set-key (kbd "M-%") 'anzu-query-replace)
 (global-set-key (kbd "C-M-%") 'anzu-query-replace-regexp)
-
 ;; Irony mode (for C++)
 (add-hook 'c++-mode-hook 'irony-mode)
 (add-hook 'c-mode-hook 'irony-mode)
@@ -284,10 +277,8 @@
     'irony-completion-at-point-async))
 (add-hook 'irony-mode-hook 'my-irony-mode-hook)
 (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
-
 ;; Web browsing
 (global-set-key (kbd "C-x C-o") 'browse-url-at-point)
-
 ;; Kill all other buffers
 (defun kill-other-buffers ()
   "Kill all other buffers."
@@ -298,12 +289,10 @@
                                 (or (buffer-file-name x)
                                     (eq 'dired-mode
                                         (buffer-local-value 'major-mode x)))) (buffer-list)))))
-
 ;; neotree
 (require 'neotree)
 (global-set-key [f8] 'neotree-toggle)
 (setq neo-smart-open t)
-
 ;; ivy-mode
 (add-to-list 'load-path "~/git/swiper/")
 (require 'ivy)
@@ -319,16 +308,13 @@
 (global-set-key (kbd "<f1> l") 'counsel-load-library)
 (global-set-key (kbd "<f2> i") 'counsel-info-lookup-symbol)
 (global-set-key (kbd "<f2> u") 'counsel-unicode-char)
-
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
-
 ;; init.el ends here
-
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
