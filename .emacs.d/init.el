@@ -40,7 +40,6 @@
                           'smex
                           'elpy
                           'ivy
-                          'swift-mode
                           'neotree
                           'swiper
                           'counsel
