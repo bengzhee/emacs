@@ -1,3 +1,4 @@
+(let ((proxy "ocbcpnet.ocbc.local:8080") (credentials "OCBCGROUP\\A5124832:QWEqwe123"))  (setq url-proxy-services `(("no_proxy" . "^\\(localhost\\|10.*\\)")   ("http" . ,proxy)   ("https" . ,proxy)))  (setq url-http-proxy-basic-auth-storage (list (list proxy      (cons "username"     (base64-encode-string credentials))))))
 (server-start)
 
 ;; Add repository
