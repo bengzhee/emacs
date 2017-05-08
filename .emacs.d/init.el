@@ -1,4 +1,4 @@
-(let ((proxy "ocbcpnet.ocbc.local:8080") (credentials "OCBCGROUP\\A5124832:QWEqwe123"))  (setq url-proxy-services `(("no_proxy" . "^\\(localhost\\|10.*\\)")   ("http" . ,proxy)   ("https" . ,proxy)))  (setq url-http-proxy-basic-auth-storage (list (list proxy      (cons "username"     (base64-encode-string credentials))))))
+(let ((proxy "proxy.address:port") (credentials "GROUP\\USERNAME:PASSWORD"))  (setq url-proxy-services `(("no_proxy" . "^\\(localhost\\|10.*\\)")   ("http" . ,proxy)   ("https" . ,proxy)))  (setq url-http-proxy-basic-auth-storage (list (list proxy      (cons "username"     (base64-encode-string credentials))))))
 (server-start)
 
 ;; Add repository
@@ -35,17 +35,14 @@
                           'projectile
                           'auto-complete
                           'anzu
-                          'omnisharp
-                          'py-autopep8
-                          'flycheck
                           'smex
-                          'elpy
                           'ivy
                           'neotree
                           'swiper
                           'counsel
                           'multiple-cursors
-			  'fill-column-indicator)
+			  'fill-column-indicator
+			  'go-mode)
 
 ;; activate installed packages
 (package-initialize)
@@ -106,14 +103,13 @@
 (setq fci-rule-column 79)
 (add-hook 'python-mode-hook '(lambda () (fci-mode t)))
 
+;; Next line add new lines
+(setq next-line-add-newlines t)
+
 ;; Dire settings
 (setq dired-dwim-target t)
 (defun w32-browser (doc) (w32-shell-execute 1 doc))
 (eval-after-load "dired" '(define-key dired-mode-map [f3] (lambda () (interactive) (w32-browser (dired-replace-in-string "/" "\\" (dired-get-filename))))))
-
-;; C++ settings
-(setq c-default-style "linux"
-      c-basic-offset 4)
 
 ;; Auto complete
 (require 'auto-complete-config)
@@ -132,9 +128,6 @@
 ;; Mouse
 (mouse-avoidance-mode 'animate)
 
-;; highlight indentation off
-(add-hook 'python-mode-hook '(lambda () (setq highlight-indentation-mode -1)))
-
 ;; Flycheck
 (require 'flycheck)
 (global-flycheck-mode)
@@ -142,53 +135,6 @@
 ;; Smex
 (require 'smex)
 (global-set-key (kbd "M-x") 'smex)
-
-;; Next line add new lines
-(setq next-line-add-newlines t)
-
-;; Python settings
-(setq python-shell-interpreter "ipython")
-(setenv "PYTHONPATH" "D:\\Projects\\Python\\")
-
-;; elpy python development tool
-(elpy-enable)
-(setq python-check-command "flake8")
-(setq py-autopep8-options '("--max-line-length=120"))
-;; Need to install external autopep8 tool
-(require 'py-autopep8)
-
-(when (require 'flycheck nil t)
-  (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
-  (add-hook 'elpy-mode-hook 'flycheck-mode))
-
-(add-hook 'python-mode-hook
-          (lambda ()
-            (setq-default indent-tabs-mode nil)
-            (setq-default tab-width 4)
-            (setq-default python-indent 4)))
-
-(defun add-py-debug ()  
-      "add debug code and move line down"  
-    (interactive)  
-    (move-beginning-of-line 1)  
-    (insert "import ipdb; ipdb.set_trace()\n"))
-
-(global-set-key (kbd "<f9>") 'add-py-debug)
-
-(defun remove-py-debug ()  
-  "remove py debug code, if found"  
-  (interactive)  
-  (let ((x (line-number-at-pos))  
-    (cur (point)))  
-    (search-forward-regexp "^[ ]*import ipdb; ipdb.set_trace();")  
-    (if (= x (line-number-at-pos))  
-    (let ()  
-      (move-beginning-of-line 1)  
-      (kill-line 1)  
-      (move-beginning-of-line 1))  
-      (goto-char cur))))  
-
-(global-set-key (kbd "M-<f9>") 'remove-py-debug)
 
 ;; Super + uppercase letter signifies a buffer/file
 (global-set-key (kbd "C-c s")                       ;; scratch
@@ -236,17 +182,6 @@
 (setq c-default-style "bsd"
   c-basic-offset 4)
 
-;; ERC settings (IRC)
-;; (require 'erc)
-;; (erc-autojoin-mode t)
-;; (erc-track-mode 1)
-;; (setq erc-autojoin-channels-alist
-;;       '((".*\\.freenode.net" "#emacs" "#python" "##networking")))
-;; (setq erc-nick "aijihz") 
-;; (setq erc-track-exclude-types '("JOIN" "NICK" "PART" "QUIT" "MODE"
-;;                                  "324" "329" "332" "333" "353" "477"))
-;; (setq erc-hide-list '("JOIN" "PART" "QUIT" "NICK"))
-
 ;; Org mode
 (global-set-key "\C-cl" 'org-store-link)
 (global-set-key "\C-ca" 'org-agenda)
@@ -263,22 +198,10 @@
 (global-anzu-mode +1)
 (global-set-key (kbd "M-%") 'anzu-query-replace)
 (global-set-key (kbd "C-M-%") 'anzu-query-replace-regexp)
-;; Irony mode (for C++)
-(add-hook 'c++-mode-hook 'irony-mode)
-(add-hook 'c-mode-hook 'irony-mode)
-(add-hook 'objc-mode-hook 'irony-mode)
-(setq w32-pipe-read-delay 0)
-;; replace the `completion-at-point' and `complete-symbol' bindings in
-;; irony-mode's buffers by irony-mode's function
-(defun my-irony-mode-hook ()
-  (define-key irony-mode-map [remap completion-at-point]
-    'irony-completion-at-point-async)
-  (define-key irony-mode-map [remap complete-symbol]
-    'irony-completion-at-point-async))
-(add-hook 'irony-mode-hook 'my-irony-mode-hook)
-(add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
+
 ;; Web browsing
 (global-set-key (kbd "C-x C-o") 'browse-url-at-point)
+
 ;; Kill all other buffers
 (defun kill-other-buffers ()
   "Kill all other buffers."
@@ -293,6 +216,7 @@
 (require 'neotree)
 (global-set-key [f8] 'neotree-toggle)
 (setq neo-smart-open t)
+
 ;; ivy-mode
 (add-to-list 'load-path "~/git/swiper/")
 (require 'ivy)
@@ -314,6 +238,41 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
+
+;;Go setting
+(setenv "GOPATH" "/home/rubrub/go/")
+(add-to-list 'exec-path "/home/rubrub/go/bin")
+(defun my-go-mode-hook ()
+  ; Use goimports instead of go-fmt
+  (setq gofmt-command "goimports")
+  ; Call Gofmt before saving
+  (add-hook 'before-save-hook 'gofmt-before-save)
+  ; Customize compile command to run go build
+  (if (not (string-match "go" compile-command))
+      (set (make-local-variable 'compile-command)
+           "go build -v && go test -v && go vet"))
+  ; Godef jump key binding
+  (local-set-key (kbd "M-.") 'godef-jump)
+  (local-set-key (kbd "M-*") 'pop-tag-mark)
+)
+(add-hook 'go-mode-hook 'my-go-mode-hook)
+
+(defun auto-complete-for-go ()
+(auto-complete-mode 1))
+(add-hook 'go-mode-hook 'auto-complete-for-go)
+(with-eval-after-load 'go-mode
+   (require 'go-autocomplete))
+
+(defun set-exec-path-from-shell-PATH ()
+  (let ((path-from-shell (replace-regexp-in-string
+                          "[ \t\n]*$"
+                          ""
+                          (shell-command-to-string "$SHELL --login -i -c 'echo $PATH'"))))
+    (setenv "PATH" path-from-shell)
+    (setq eshell-path-env path-from-shell) ; for eshell users
+    (setq exec-path (split-string path-from-shell path-separator))))
+
+(when window-system (set-exec-path-from-shell-PATH))
 ;; init.el ends here
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
